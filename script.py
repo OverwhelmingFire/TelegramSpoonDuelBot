@@ -36,14 +36,11 @@ def init():
     for chat_from_table in chats_from_table:
         new_peer = Peer(*chat_from_table) # initialize new Peer by id
         peers.append(new_peer)
-    print(chats_from_table)
 
 
 async def get_peer_index_by_id(_id):
     for i in range(len(peers)):
         if peers[i].id == _id:
-            print(i)
-            print(len(peers))
             return i
     chat = await client.get_entity(await client.get_entity(_id))
     cursor.execute("INSERT INTO ChatsPreferences VALUES(:id, :name, 0, 0)", {'id':chat.id, 'name':chat.title})
@@ -79,11 +76,9 @@ def user_won(_player):
 async def handle_message(message, peer_index):
     if "🥄" in message.message: # if the bot finds at least 1 SPOON emoji in the message...
         if peers[peer_index].pvp_mode_on == True and (message.from_id == peers[peer_index].first_player.id or message.from_id == peers[peer_index].second_player.id): # if there is an active Duel...
-            print(peers[peer_index].pvp_mode_on, message.from_id == peers[peer_index].first_player, message.from_id == peers[peer_index].second_player)
             peers[peer_index].counter += 1
             peers[peer_index].messages_with_spoon_ids.append(message.id)
             ran = random.randint(0,100) # then the "dice" is "thrown"
-            print(ran)
             if ran < win_probability_percents:
                 winner=None
                 loser=None
@@ -139,12 +134,10 @@ async def get_player_by_id(_id):
         conn.commit()  # commit all the changes done to the database!!!!!!!!
         return Player(_id, name, score, 0, 1)
     else:  # if we successfully fetched all his/her data from the table...
-        print(result[0])
         return Player(result[0][0], result[0][1], result[0][2], result[0][3], result[0][4])
 
 async def find_command(message, peer_index):
     command=message.message
-    print("!")
     if "Вызываю тебя на дуэль!" in command or "/call@spoonduelbot" in command:
         if message.reply_to_msg_id is not None:
             reply_to_messages = await client(GetMessagesRequest(await client.get_input_entity(message.to_id), [message.reply_to_msg_id]))
@@ -166,7 +159,6 @@ async def find_command(message, peer_index):
                 text += str(i[2]) + " у " + str(i[0]) + "\n"
         await client.send_message(entity=await client.get_input_entity(message.to_id), message = text, reply_to = message.id)
     elif "/help@spoonduelbot" in command: # in this ELIF block the bot sends a help message
-        print(repr(help_message))
         await client.send_message(entity=await client.get_input_entity(message.to_id), message = help_message, reply_to = message.id)
     elif "/tournament@spoonduelbot" in command: # in this ELIF block the bot shows current Tournament stats
         cursor.execute("SELECT * FROM GameScores WHERE kicked=0 ORDER BY tour DESC")
@@ -192,7 +184,6 @@ async def find_command(message, peer_index):
             KeyboardButtonRow([KeyboardButtonCallback(text=("Удалять после дуэли" if peers[peer_index].clear_after_duel == False else "Не удалять после дуэли"), data=b"ca_switch")]),
             KeyboardButtonRow([KeyboardButtonCallback(text="❌Удалить это сообщение❌", data=b"del_message")])])
         await client.send_message(entity=await client.get_input_entity(message.to_id), message = preferences_message, buttons = replMarkup, reply_to = message.id)
-        print("settings")
     elif "/sendimage@spoonduelbot" in command:
         urls = test_google.google("spoon", 10)
         index = random.randint(0, len(urls)-1)
@@ -243,7 +234,6 @@ async def handle_query(event, peer_index):
         else:
             await client(SetBotCallbackAnswerRequest(query_id = event.query.query_id, cache_time = 1, message = "Простите, у вас недостаточно прав."))
     elif event.query.data==b'ca_switch':
-        print("asdkk")
         query_sender = await client(GetParticipantRequest(chat, await client.get_input_entity(query_sender_id)))
         if isinstance(query_sender.participant, ChannelParticipantAdmin) or isinstance(query_sender.participant, ChannelParticipantCreator):
             peers[peer_index].clear_after_duel = not peers[peer_index].clear_after_duel
@@ -255,7 +245,6 @@ async def handle_query(event, peer_index):
             cursor.execute("UPDATE ChatsPreferences SET clear_after_duel=:clear_after_duel WHERE chat_id=:chat_id", {'clear_after_duel':peers[peer_index].clear_after_duel,'chat_id':peers[peer_index].id})
             conn.commit()
             await client(SetBotCallbackAnswerRequest(query_id=event.query.query_id, cache_time=1, message="Настройки успешно изменены."))
-            print("фывждл")
         else:
             await client(SetBotCallbackAnswerRequest(query_id = event.query.query_id, cache_time = 1, message = "Простите, у вас недостаточно прав."))
     elif event.query.data==b'del_message':
@@ -295,7 +284,6 @@ init()
 @client.on(events.Raw())
 async def handlerRaw(event):
     print(event)
-    print("!!!!!!!!!!!!!!!!")
 
 @client.on(events.NewMessage())
 async def handlerNewMessage(event):
@@ -317,10 +305,7 @@ async def handlerNewMessage(event):
 
 @client.on(events.CallbackQuery())
 async def handlerCallbackQuery(event):
-    print(event)
-    print(list(event.query.__dict__.values())[0])
     index = await get_peer_index_by_id(list(event.query.peer.__dict__.values())[0])
-    print(index)
     try:
         await handle_query(event, index)
     except KeyboardInterrupt:
@@ -341,7 +326,6 @@ async def handlerInlineQuery(event):
                                                                         )]
                                                                         ))
     ]))
-    print(res)
 
 
 @client.on(events.ChatAction())  # here all cases when any button is pressed are handled
