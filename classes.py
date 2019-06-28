@@ -2,6 +2,7 @@ import globals
 
 class Peer:
     input_peer = None
+    time_when_duel_started=None
     id = None
     name = ""
     pvp_mode_on = False  # cannot start a new Duel until it is False
@@ -28,6 +29,7 @@ class Peer:
         self.counter=0
         self.first_player=None
         self.second_player=None
+        self.time_when_duel_started=None
         self.messages_with_spoon_ids=[]
 
 class Player:

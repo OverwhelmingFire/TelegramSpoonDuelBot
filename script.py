@@ -1,30 +1,5 @@
-#encoding: utf8
 from globals import *
 from classes import *
-import random
-from telethon import TelegramClient, events
-from telethon.tl.functions import *
-from telethon.tl.types import MessageMediaDocument
-from telethon.tl.functions.channels import EditBannedRequest,DeleteMessagesRequest
-from telethon.tl.functions.messages import EditMessageRequest
-from telethon.tl.functions.users import GetFullUserRequest
-from telethon.tl.functions.channels import GetMessagesRequest
-from telethon.tl.types import UserStatusOnline
-from telethon.tl.types import ReplyInlineMarkup
-from telethon.tl.types import KeyboardButtonRow
-from telethon.tl.types import KeyboardButtonCallback
-from telethon.tl.types import KeyboardButtonSwitchInline
-from telethon.tl.functions.messages import EditInlineBotMessageRequest
-from telethon.tl.functions.messages import SendInlineBotResultRequest
-from telethon.tl.types import InputBotInlineMessageID
-from telethon.tl.functions.messages import SetBotCallbackAnswerRequest
-from telethon.tl.functions.channels import GetParticipantsRequest
-from telethon.tl.types import ChannelParticipantsSearch
-from telethon.tl.functions.channels import GetFullChannelRequest
-from telethon.tl.types import MessageEntityBold
-from telethon.tl.functions.channels import GetAdminedPublicChannelsRequest
-import test_google
-from telethon.extensions import markdown
 
 
 def init():
@@ -171,11 +146,14 @@ async def find_command(message, peer_index):
     command=message.message
     print("!")
     if "Вызываю тебя на дуэль!" in command or "/call@spoonduelbot" in command:
-        reply_to_messages = await client(GetMessagesRequest(await client.get_input_entity(message.to_id), [message.reply_to_msg_id]))
-        toID = reply_to_messages.messages[0].from_id
-        if toID != message.from_id: # prevents users from calling themselves on a Duel! (would be easy to earn higher scores)
-            replMarkup = ReplyInlineMarkup([KeyboardButtonRow([KeyboardButtonCallback(text="❤️️", data=str(toID)), KeyboardButtonCallback(text="💔", data=b'0')])]) # create
-            await client.send_message(entity=await client.get_input_entity(message.to_id), message = "[Ты](tg://user?id="+str(toID)+") "+begin_phrase, reply_to = message.id, buttons = replMarkup)
+        if message.reply_to_msg_id is not None:
+            reply_to_messages = await client(GetMessagesRequest(await client.get_input_entity(message.to_id), [message.reply_to_msg_id]))
+            toID = reply_to_messages.messages[0].from_id
+            if toID != message.from_id: # prevents users from calling themselves on a Duel! (would be easy to earn higher scores)
+                replMarkup = ReplyInlineMarkup([KeyboardButtonRow([KeyboardButtonCallback(text="❤️️", data=str(toID)), KeyboardButtonCallback(text="💔", data=b'0')])]) # create
+                await client.send_message(entity=await client.get_input_entity(message.to_id), message = "[Ты](tg://user?id="+str(toID)+") "+begin_phrase, reply_to = message.id, buttons = replMarkup)
+        else:
+            await client.send_message(entity=await client.get_input_entity(message.to_id), message=annoyed_reply, reply_to=message.id)
 
     elif "/showstats@spoonduelbot" in command: # in this ELIF block the bot shows current stats
         cursor.execute("SELECT * FROM GameScores ORDER BY score DESC")
@@ -188,6 +166,7 @@ async def find_command(message, peer_index):
                 text += str(i[2]) + " у " + str(i[0]) + "\n"
         await client.send_message(entity=await client.get_input_entity(message.to_id), message = text, reply_to = message.id)
     elif "/help@spoonduelbot" in command: # in this ELIF block the bot sends a help message
+        print(repr(help_message))
         await client.send_message(entity=await client.get_input_entity(message.to_id), message = help_message, reply_to = message.id)
     elif "/tournament@spoonduelbot" in command: # in this ELIF block the bot shows current Tournament stats
         cursor.execute("SELECT * FROM GameScores WHERE kicked=0 ORDER BY tour DESC")
@@ -256,7 +235,7 @@ async def handle_query(event, peer_index):
             replMarkup = ReplyInlineMarkup([
                  KeyboardButtonRow([KeyboardButtonCallback(text=("Удалять сразу" if peers[peer_index].delete_immediately == False else "Не удалять сразу"), data=b"di_switch")]),
                  KeyboardButtonRow([KeyboardButtonCallback(text=("Удалять после дуэли" if peers[peer_index].clear_after_duel == False else "Не удалять после дуэли"), data=b"ca_switch")]),
-            KeyboardButtonRow([KeyboardButtonCallback(text="❌Удалить это сообщение❌", data=b"del_message")])])
+            KeyboardButtonRow([KeyboardButtonCallback(text="❌Удалить сообщение❌", data=b"del_message")])])
             await client.edit_message(entity= chat, message = event.query.msg_id, text = preferences_message, buttons = replMarkup)
             cursor.execute("UPDATE ChatsPreferences SET delete_immediately=:delete_immediately WHERE chat_id=:chat_id", {'delete_immediately':peers[peer_index].delete_immediately,'chat_id':peers[peer_index].id})
             conn.commit()
@@ -271,7 +250,7 @@ async def handle_query(event, peer_index):
             replMarkup = ReplyInlineMarkup([
                  KeyboardButtonRow([KeyboardButtonCallback(text=("Удалять сразу" if peers[peer_index].delete_immediately == False else "Не удалять сразу"), data=b"di_switch")]),
                  KeyboardButtonRow([KeyboardButtonCallback(text=("Удалять после дуэли" if peers[peer_index].clear_after_duel == False else "Не удалять после дуэли"), data=b"ca_switch")]),
-                 KeyboardButtonRow([KeyboardButtonCallback(text="❌Удалить это сообщение❌", data=b"del_message")])])
+                 KeyboardButtonRow([KeyboardButtonCallback(text="❌Удалить сообщение❌", data=b"del_message")])])
             await client.edit_message(entity= chat, message = event.query.msg_id, text = preferences_message, buttons = replMarkup)
             cursor.execute("UPDATE ChatsPreferences SET clear_after_duel=:clear_after_duel WHERE chat_id=:chat_id", {'clear_after_duel':peers[peer_index].clear_after_duel,'chat_id':peers[peer_index].id})
             conn.commit()
@@ -291,19 +270,20 @@ async def handle_query(event, peer_index):
         else:
             await client(SetBotCallbackAnswerRequest(query_id = event.query.query_id, cache_time = 1, message = "Простите, вы не можете аннулировать этот вызов."))
     else:
-        if peers[peer_index].pvp_mode_on == False:  # if there's no Duel which takes place right now
+        if peers[peer_index].pvp_mode_on == False or time.time()-peers[peer_index].time_when_duel_started>time_limit:  # if there's no Duel which takes place right now
             if query_sender_id == int(event.query.data.decode('ascii')):  # check if the query sender is the called one
                 peers[peer_index].input_peer = chat
                 peers[peer_index].first_player = await get_player_by_id(caller_id)
                 peers[peer_index].second_player = await get_player_by_id(called_id)
+                msg = markdown.unparse(bot_message.message, bot_message.entities) + "\n\nВызов был принят."
                 if peers[peer_index].first_player.kicked == 0 and peers[peer_index].second_player.kicked == 0 and peers[peer_index].first_player.tour==peers[peer_index].second_player.tour:# check if both players are capable of participating in the Tournament
                     peers[peer_index].tournament = True
-                    msg = markdown.unparse(bot_message.message, bot_message.entities) + "\n\nВызов был принят.\n\nВЫ УЧАСТВУЕТЕ В ТУРНИРЕ, РАУНД " + str(peers[peer_index].first_player_tour) # second part of the message
-                    await client.edit_message(entity = chat, message = event.query.msg_id, text = msg)
-                else:
-                    msg = markdown.unparse(bot_message.message, bot_message.entities)
-                    await client.edit_message(entity = chat, message = event.query.msg_id, text = msg + "\n\nВызов был принят.")
+                    msg += "\n\n**Вы участвуете в турнире, раунд** " + str(peers[peer_index].first_player_tour) # second part of the message
+                if peers[peer_index].time_when_duel_started is not None and time.time()-peers[peer_index].time_when_duel_started>time_limit:
+                    msg+="\n\n__Предыдущая дуэль в этом чате была остановлена ввиду превышения лимита времени.__"
+                await client.edit_message(entity = chat, message = event.query.msg_id, text = msg)
                 peers[peer_index].pvp_mode_on = True
+                peers[peer_index].time_when_duel_started=time.time()
             else:
                 await client(SetBotCallbackAnswerRequest(query_id = event.query.query_id, cache_time = 42, message = "Простите, вызов был брошен не вам."))
         else:
