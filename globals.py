@@ -25,9 +25,9 @@ from telethon.tl.types import ChannelParticipantsSearch
 from telethon.tl.types import MessageEntityBold
 from telethon.extensions import markdown
 
-#
-# Здесь объявляются переменные и константы, которые будут доступны в global scope, в том числе и строковые литералы.
-#
+####
+#### Здесь объявляются переменные и константы, которые будут доступны в global scope, в том числе и строковые литералы.
+####
 
 API_ID = None
 API_HASH = None
