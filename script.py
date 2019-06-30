@@ -200,9 +200,12 @@ async def find_command(message, peer_index):
         if message.reply_to_msg_id is not None:
             replied_message = (await client(GetMessagesRequest(await client.get_input_entity(message.to_id), [message.reply_to_msg_id]))).messages[0]
             to_id = replied_message.from_id
+
+            # Проверка, не вызывал ли пользователь на дуэль сам себя.
             if to_id != message.from_id:
                 reply_markup = ReplyInlineMarkup([KeyboardButtonRow([KeyboardButtonCallback(text="❤️️", data=str(to_id)), KeyboardButtonCallback(text="💔", data=b'0')])]) # create
                 await client.send_message(entity=await client.get_input_entity(message.to_id), message = "[Ты](tg://user?id="+str(to_id)+") "+begin_phrase, reply_to = message.id, buttons = reply_markup)
+        # Если вызов был отправлен в пустоту, не в ответ на чье-то сообщение, бот раздраженно отправит пользователя читать инструкцию.
         else:
             await client.send_message(entity=await client.get_input_entity(message.to_id), message=annoyed_reply, reply_to=message.id)
     elif "/showstats@spoonduelbot" in command:
