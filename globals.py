@@ -23,20 +23,17 @@ from telethon.tl.types import ChannelParticipantAdmin
 from telethon.tl.types import ChannelParticipantCreator
 from telethon.tl.types import ChannelParticipantsSearch
 from telethon.tl.types import MessageEntityBold
-import test_google
 from telethon.extensions import markdown
 
-API_ID = None#
-API_HASH = None#
-BOT_TOKEN = None#
-client = None# bot.session file will be created; do not delete!
-conn = None # gamelogs.sqlite file will be created; do not delete it too!
-                # there are 5 fields in the table named GameScores:
-                # name      |   the name of each player by the time of his first game
-                # user_id   |   the id of each player
-                # score     |   the score of each player
-                # kicked    |   whether the player has been kicked from the Tournament; default value: 0
-                # round     |   the round of the player participating in the Tournament; if kicked set to 0; default value: 1
+#
+# Здесь объявляются переменные и константы, которые будут доступны в global scope, в том числе и строковые литералы.
+#
+
+API_ID = None
+API_HASH = None
+BOT_TOKEN = None
+client = None
+conn = None
 cursor = None
 help_message="Я стану **секундантом** в твоей дуэли, если захочешь показать негодяям, кто тут главный. Просто ответь " \
              "на сообщение оппонента `Вызываю тебя на дуэль!` - дословно: " \
