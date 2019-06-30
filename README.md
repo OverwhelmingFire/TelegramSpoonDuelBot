@@ -1,92 +1,51 @@
 # Секундант с ложкой
 
-Этот Телеграм-бот осуществляет виртуальные дуэли на ложках между пользователями. По сути, представляет из себя текстовую мини-игру: забавно, весело, заразительно. По многочисленным просьбам желающих было принято решение опубликовать исходники. Бота можете найти и испытать на деле тут:
-t.me/SpoonDuelBot
-
-
-## Getting Started
-
+Этот Телеграм-бот осуществляет виртуальные дуэли на ложках между пользователями. По сути, представляет из себя текстовую мини-игру: забавно, весело, заразительно. По многочисленным просьбам желающих было принято решение опубликовать исходники. Бота можете найти и испытать на деле можно [здесь](t.me/SpoonDuelBot).
 
 
 ### Требования к боту
 
-Убедитесь, что на вашем компьютере присутствуют Python 3.7 и выше и следующие его библиотеки:
+Чтобы скрипт заработал, на компьютере должны присутствовать Python 3.7 и выше и следующие его модули:
 
-''`
-asyncio
-telethon
-sqlite3
 ```
-Также вам понадобятся ваши собственные API Hash, API ID от Телеграма и Bot Hash. Для получения первых двух зайдите на 
+* telethon версии 1.8.0 и выше
+```
+
+Также на компьютере должны быть установлены:
+
+```
+* sqlite3 версии 2.8.17-14 и выше
+* asyncio
+```
+
+Также нужны API Hash, API ID от Телеграма и Bot Hash. Первые два получить можно [здесь](https://my.telegram.org/apps), для получения Bot Hash'а надо создать нового бота [тут](https://t.me/botfather).
+ 
 
 ### Запуск
 
-
-
-```
-Give the example
-```
-
-And repeat
+Запуск необходимо осуществлять от имени суперъюзера, поскольку в течение своей работы скрипт будет вносить изменения в базу данных, постепенно заполняя её новыми записями и редактируя старые:
 
 ```
-until finished
+sudo /absolute/path/to/the/file/script.py
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Скрипт попросит ввести **API Hash**, **API ID** и **Bot Hash**. Повторно вводить их не придётся, поскольку введённые значения записываются в файл `config.ini`.
 
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+Готово! Бот запущен и работает.
 
 
+### Назначения некоторых файлов
+
+* **script.py**: хранит собственно исполняемый код.
+
+* **peer.py**: класс Peer, упрощающий хранение и доступ к информации о чатах во время работы программы.
+
+* **player.py**: класс Player.
+
+* **globals.py**: содержит глобальные переменные.
+
+* _bot.session_: создаётся после первого запуска скрипта, здесь хранится сессия в Telegram.
+
+* _gamelogs.sqlite_: создаётся после первого запуска скрипта, это база данных, в которой хранится информация обо всех известных боту игроках и настройки всех ему известных чатов.
+
+* _config.ini_: создаётся, после первого запуска скрипта, сюда записываются хэши и API ID, которые вводятся при первом запуске скрипта. При удалении файла данные придётся вводить заново.
